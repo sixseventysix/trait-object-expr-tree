@@ -2,8 +2,7 @@
 // C ::= Add(C, C) | Mult(C, C) | Sin(C) | Cos(C) | Exp(C) | Sqrt(C) | Div(C, C) | MixUnbounded(C, C, C, C)
 
 use crate::traits::Component;
-use crate::generator::generate_component;
-use crate::ast::atoms::RandomConst;
+use crate::generator::{generate_component, generate_atom};
 
 // Binary operations
 pub struct Add(pub Box<dyn Component>, pub Box<dyn Component>);
@@ -21,7 +20,7 @@ impl Component for Add {
 
     fn generate(depth: usize, rng: &mut rand::rngs::ThreadRng) -> Box<dyn Component> {
         if depth == 0 {
-            return RandomConst::generate(depth, rng);
+            return generate_atom(rng);
         }
         Box::new(Add(
             generate_component(depth - 1, rng),
@@ -45,7 +44,7 @@ impl Component for Mult {
 
     fn generate(depth: usize, rng: &mut rand::rngs::ThreadRng) -> Box<dyn Component> {
         if depth == 0 {
-            return RandomConst::generate(depth, rng);
+            return generate_atom(rng);
         }
         Box::new(Mult(
             generate_component(depth - 1, rng),
@@ -74,7 +73,7 @@ impl Component for Div {
 
     fn generate(depth: usize, rng: &mut rand::rngs::ThreadRng) -> Box<dyn Component> {
         if depth == 0 {
-            return RandomConst::generate(depth, rng);
+            return generate_atom(rng);
         }
         Box::new(Div(
             generate_component(depth - 1, rng),
@@ -104,7 +103,7 @@ impl Component for Sin {
 
     fn generate(depth: usize, rng: &mut rand::rngs::ThreadRng) -> Box<dyn Component> {
         if depth == 0 {
-            return RandomConst::generate(depth, rng);
+            return generate_atom(rng);
         }
         Box::new(Sin(generate_component(depth - 1, rng)))
     }
@@ -125,7 +124,7 @@ impl Component for Cos {
 
     fn generate(depth: usize, rng: &mut rand::rngs::ThreadRng) -> Box<dyn Component> {
         if depth == 0 {
-            return RandomConst::generate(depth, rng);
+            return generate_atom(rng);
         }
         Box::new(Cos(generate_component(depth - 1, rng)))
     }
@@ -146,7 +145,7 @@ impl Component for Exp {
 
     fn generate(depth: usize, rng: &mut rand::rngs::ThreadRng) -> Box<dyn Component> {
         if depth == 0 {
-            return RandomConst::generate(depth, rng);
+            return generate_atom(rng);
         }
         Box::new(Exp(generate_component(depth - 1, rng)))
     }
@@ -167,7 +166,7 @@ impl Component for Sqrt {
 
     fn generate(depth: usize, rng: &mut rand::rngs::ThreadRng) -> Box<dyn Component> {
         if depth == 0 {
-            return RandomConst::generate(depth, rng);
+            return generate_atom(rng);
         }
         Box::new(Sqrt(generate_component(depth - 1, rng)))
     }
@@ -206,7 +205,7 @@ impl Component for MixUnbounded {
 
     fn generate(depth: usize, rng: &mut rand::rngs::ThreadRng) -> Box<dyn Component> {
         if depth == 0 {
-            return RandomConst::generate(depth, rng);
+            return generate_atom(rng);
         }
         Box::new(MixUnbounded(
             generate_component(depth - 1, rng),

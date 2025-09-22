@@ -55,7 +55,7 @@ impl Component for RandomConst {
     }
 
     fn codegen(&self) -> String {
-        format!("{:.3}", self.0)
+        format!("{:.6}", self.0)
     }
 
     fn generate(_depth: usize, rng: &mut rand::rngs::ThreadRng) -> Box<dyn Component> {
