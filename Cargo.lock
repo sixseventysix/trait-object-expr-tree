@@ -94,7 +94,7 @@ dependencies = [
 ]
 
 [[package]]
-name = "trait-math-ast"
+name = "trait-object-expr-tree"
 version = "0.1.0"
 dependencies = [
  "rand",
