@@ -10,11 +10,9 @@ fn main() {
     println!("A ::= x | y | random[-1,1]");
     println!();
 
-    for i in 0..3 {
-        let expr = Expression::generate(4, &mut rng);
-        println!("Expression {}: {}", i + 1, expr.codegen());
-        let result = expr.evaluate(0.6, 0.2);
-        println!("Evaluates to: ({:.3}, {:.3}, {:.3})", result.0, result.1, result.2);
-        println!();
-    }
+    let expr = Expression::generate(4, &mut rng);
+    println!("Expression {}: {}", i + 1, expr.codegen());
+    let result = expr.evaluate(0.6, 0.2);
+    println!("Evaluates to: ({:.3}, {:.3}, {:.3})", result.0, result.1, result.2);
+    println!();
 }
