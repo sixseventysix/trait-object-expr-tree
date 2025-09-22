@@ -1,6 +1,8 @@
 pub trait ExprNode {
     fn evaluate(&self, x: f64, y: f64) -> f64;
     fn codegen(&self) -> String;
+    fn generate(depth: usize, rng: &mut rand::rngs::ThreadRng) -> Box<dyn ExprNode> where Self: Sized;
+    fn weight() -> f64 where Self: Sized;
 }
 
 pub struct Const(pub f64);
@@ -13,6 +15,14 @@ impl ExprNode for Const {
 
     fn codegen(&self) -> String {
         format!("{}", self.0)
+    }
+
+    fn generate(_depth: usize, rng: &mut rand::rngs::ThreadRng) -> Box<dyn ExprNode> {
+        Box::new(Const(rng.gen_range(-1.0..1.0)))
+    }
+
+    fn weight() -> f64 {
+        0.1
     }
 }
 
@@ -28,6 +38,15 @@ impl ExprNode for Var {
     fn codegen(&self) -> String {
         self.0.clone()
     }
+
+    fn generate(_depth: usize, _rng: &mut rand::rngs::ThreadRng) -> Box<dyn ExprNode> {
+        let vars = ["x", "y"];
+        Box::new(Var(vars[rand::random::<usize>() % vars.len()].to_string()))
+    }
+
+    fn weight() -> f64 {
+        0.1
+    }
 }
 
 pub struct Add(pub Box<dyn ExprNode>, pub Box<dyn ExprNode>);
@@ -41,6 +60,20 @@ impl ExprNode for Add {
     fn codegen(&self) -> String {
         format!("({} + {})", self.0.codegen(), self.1.codegen())
     }
+
+    fn generate(depth: usize, rng: &mut rand::rngs::ThreadRng) -> Box<dyn ExprNode> {
+        if depth == 0 {
+            return Const::generate(depth, rng);
+        }
+        Box::new(Add(
+            generate_random_expr(depth - 1, rng),
+            generate_random_expr(depth - 1, rng),
+        ))
+    }
+
+    fn weight() -> f64 {
+        0.4
+    }
 }
 
 impl ExprNode for Mul {
@@ -51,20 +84,54 @@ impl ExprNode for Mul {
     fn codegen(&self) -> String {
         format!("({} * {})", self.0.codegen(), self.1.codegen())
     }
+
+    fn generate(depth: usize, rng: &mut rand::rngs::ThreadRng) -> Box<dyn ExprNode> {
+        if depth == 0 {
+            return Const::generate(depth, rng);
+        }
+        Box::new(Mul(
+            generate_random_expr(depth - 1, rng),
+            generate_random_expr(depth - 1, rng),
+        ))
+    }
+
+    fn weight() -> f64 {
+        0.4
+    }
 }
 
-fn main() {
-    let expr: Box<dyn ExprNode> = Box::new(Add(
-        Box::new(Mul(
-            Box::new(Const(2.0)),
-            Box::new(Var("x".to_string())),
-        )),
-        Box::new(Mul(
-            Box::new(Const(3.0)),
-            Box::new(Var("y".to_string())),
-        )),
-    ));
+use rand::Rng;
 
-    println!("Codegen: {}", expr.codegen());
-    println!("Evaluate with x=1.5, y=2.0: {}", expr.evaluate(1.5, 2.0));
+fn generate_random_expr(depth: usize, rng: &mut rand::rngs::ThreadRng) -> Box<dyn ExprNode> {
+    let generators: Vec<(f64, fn(usize, &mut rand::rngs::ThreadRng) -> Box<dyn ExprNode>)> = vec![
+        (Const::weight(), Const::generate),
+        (Var::weight(), Var::generate),
+        (if depth > 0 { Add::weight() } else { 0.0 }, Add::generate),
+        (if depth > 0 { Mul::weight() } else { 0.0 }, Mul::generate),
+    ];
+
+    let total_weight: f64 = generators.iter().map(|(w, _)| w).sum();
+    if total_weight == 0.0 {
+        return Const::generate(depth, rng);
+    }
+
+    let mut choice = rng.gen_range(0.0..total_weight);
+    for (weight, generator) in generators {
+        choice -= weight;
+        if choice <= 0.0 {
+            return generator(depth, rng);
+        }
+    }
+    Const::generate(depth, rng)
+}
+
+
+fn main() {
+    let mut rng = rand::thread_rng();
+
+    for i in 0..3 {
+        let generated_expr = generate_random_expr(20, &mut rng);
+        println!("Expression {}: {}", i + 1, generated_expr.codegen());
+        println!("Evaluates to: {}", generated_expr.evaluate(0.6, 0.2));
+    }
 }
